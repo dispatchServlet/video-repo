@@ -1,0 +1,19 @@
+# 依赖
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+
+# 构建产物
+dist/
+build/
+coverage/
+
+# 配置
+.env
+.env.local
+.env.development.local
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store
