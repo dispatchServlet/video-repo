@@ -3,12 +3,18 @@
   "version": "1.0.0",
   "description": "本地视频仓库 - 支持封面展示、在线播放、标签管理、关键帧标记",
   "main": "server/index.js",
+  "bin": "server/index.js",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "node server/index.js",
     "client": "cd client && npm run dev",
     "build": "cd client && npm run build",
-    "start": "node server/index.js"
+    "start": "node server/index.js",
+    "build-pkg": "pkg . --targets node16-win-x64 --output video-repo.exe"
+  },
+  "pkg": {
+    "scripts": "server/**/*.js",
+    "assets": ["client/dist/**/*", "data/**/*"]
   },
   "keywords": ["video", "repository", "local", "player"],
   "author": "",
