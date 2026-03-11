@@ -480,8 +480,10 @@ export default {
 
 <style scoped>
 .settings {
-  padding: 20px;
+  padding: var(--spacing-6);
   min-height: 100vh;
+  background: var(--bg-primary);
+  transition: all var(--transition-normal);
 }
 
 .container {
@@ -490,137 +492,259 @@ export default {
 }
 
 .header {
-  background: white;
-  padding: 20px 30px;
-  border-radius: 15px;
-  margin-bottom: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  background: var(--bg-secondary);
+  padding: var(--spacing-6) var(--spacing-8);
+  border-radius: var(--radius-2xl);
+  margin-bottom: var(--spacing-6);
+  box-shadow: var(--shadow-lg);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: all var(--transition-normal);
 }
 
 .header h1 {
-  color: #667eea;
-  font-size: 28px;
+  color: var(--primary);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
 }
 
 .settings-layout {
   display: flex;
-  gap: 20px;
-  margin-bottom: 20px;
+  gap: var(--spacing-6);
+  margin-bottom: var(--spacing-6);
+  flex-wrap: wrap;
 }
 
 .settings-menu {
-  flex: 0 0 250px;
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  flex: 0 0 280px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
+  transition: all var(--transition-normal);
 }
 
 .settings-content {
   flex: 1;
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  padding: 20px;
+  min-width: 400px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-6);
   min-height: 600px;
+  transition: all var(--transition-normal);
 }
 
 .setting-section {
-  padding: 20px 0;
+  padding: var(--spacing-6) 0;
 }
 
 .setting-section h2 {
-  color: #667eea;
-  margin-bottom: 20px;
-  font-size: 20px;
+  color: var(--primary);
+  margin-bottom: var(--spacing-6);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
 }
 
 .stats-bar {
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-6);
 }
 
 .toolbar {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 10px;
-  margin-bottom: 20px;
+  background: var(--bg-tertiary);
+  padding: var(--spacing-4);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--spacing-6);
   display: flex;
-  gap: 15px;
+  gap: var(--spacing-4);
   align-items: center;
+  flex-wrap: wrap;
+  transition: all var(--transition-normal);
 }
 
 .pagination {
-  margin-top: 20px;
+  margin-top: var(--spacing-6);
   display: flex;
   justify-content: center;
 }
 
 :deep(.el-table) {
-  border-radius: 10px;
+  border-radius: var(--radius-xl);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
 }
 
 :deep(.el-menu-vertical-demo) {
   border-right: none;
+  background: var(--bg-secondary);
+  height: 100%;
 }
 
 :deep(.el-menu-item) {
-  margin: 10px;
-  border-radius: 10px;
-  height: 50px;
-  line-height: 40px;
+  margin: var(--spacing-3);
+  border-radius: var(--radius-lg);
+  height: 56px;
+  line-height: 56px;
+  transition: all var(--transition-fast);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+}
+
+:deep(.el-menu-item:hover) {
+  background-color: var(--bg-tertiary);
+  color: var(--primary);
 }
 
 :deep(.el-menu-item.is-active) {
-  background-color: #f0f2f5;
-  color: #667eea;
+  background-color: var(--primary);
+  color: white;
+}
+
+:deep(.el-menu-item.is-active:hover) {
+  background-color: var(--primary-light);
 }
 
 .theme-options {
   display: flex;
-  gap: 15px;
+  gap: var(--spacing-4);
   flex-wrap: wrap;
 }
 
 .theme-item {
   cursor: pointer;
-  padding: 10px;
-  border-radius: 10px;
-  border: 3px solid transparent;
-  transition: all 0.3s;
+  padding: var(--spacing-3);
+  border-radius: var(--radius-xl);
+  border: 3px solid var(--border);
+  transition: all var(--transition-fast);
+  background: var(--bg-tertiary);
+  box-shadow: var(--shadow-sm);
 }
 
 .theme-item:hover {
-  transform: scale(1.05);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .theme-item.active {
-  border-color: #409eff;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
 }
 
 .theme-preview {
-  width: 100px;
-  height: 60px;
-  border-radius: 8px;
-  margin-bottom: 8px;
+  width: 120px;
+  height: 70px;
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-2);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.theme-item:hover .theme-preview {
+  box-shadow: var(--shadow-md);
 }
 
 .theme-name {
   text-align: center;
-  font-size: 14px;
-  color: #333;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
 }
 
 .init-card {
   max-width: 600px;
   margin: 0 auto;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
 }
 
 .init-content {
   text-align: center;
-  padding: 40px 20px;
+  padding: var(--spacing-10) var(--spacing-6);
+}
+
+:deep(.el-button) {
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-weight-medium);
+  padding: var(--spacing-3) var(--spacing-6);
+  transition: all var(--transition-fast);
+}
+
+:deep(.el-button:hover) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+:deep(.el-card) {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+:deep(.el-card:hover) {
+  box-shadow: var(--shadow-md);
+}
+
+:deep(.el-input) {
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-fast);
+}
+
+:deep(.el-input:focus-within) {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+:deep(.el-dialog) {
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-2xl);
+}
+
+:deep(.el-dialog__header) {
+  border-bottom: 1px solid var(--border);
+  padding: var(--spacing-6);
+}
+
+:deep(.el-dialog__body) {
+  padding: var(--spacing-6);
+}
+
+:deep(.el-dialog__footer) {
+  border-top: 1px solid var(--border);
+  padding: var(--spacing-6);
+}
+
+@media (max-width: 768px) {
+  .settings {
+    padding: var(--spacing-4);
+  }
+  
+  .settings-layout {
+    flex-direction: column;
+  }
+  
+  .settings-menu {
+    flex: 1;
+    min-width: 100%;
+  }
+  
+  .settings-content {
+    min-width: 100%;
+  }
+  
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  :deep(.el-input) {
+    width: 100% !important;
+  }
 }
 </style>

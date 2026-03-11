@@ -182,8 +182,10 @@ export default {
 
 <style scoped>
 .deleted-videos {
-  padding: 20px;
+  padding: var(--spacing-6);
   min-height: 100vh;
+  background: var(--bg-primary);
+  transition: all var(--transition-normal);
 }
 
 .container {
@@ -192,53 +194,68 @@ export default {
 }
 
 .header {
-  background: white;
-  padding: 20px 30px;
-  border-radius: 15px;
-  margin-bottom: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  background: var(--bg-secondary);
+  padding: var(--spacing-6) var(--spacing-8);
+  border-radius: var(--radius-2xl);
+  margin-bottom: var(--spacing-6);
+  box-shadow: var(--shadow-lg);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: all var(--transition-normal);
 }
 
 .header h1 {
-  color: #667eea;
-  font-size: 28px;
+  color: var(--primary);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
 }
 
 .header-actions {
   display: flex;
-  gap: 10px;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
 }
 
 .video-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  gap: var(--spacing-6);
 }
 
 .video-card {
   cursor: default;
-  transition: transform 0.3s;
+  transition: all var(--transition-normal);
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  background: var(--bg-secondary);
 }
 
 .video-card:hover {
   transform: translateY(-5px);
+  box-shadow: var(--shadow-xl);
 }
 
 .video-thumbnail {
   position: relative;
   aspect-ratio: 16/9;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   background: #000;
+  transition: all var(--transition-fast);
 }
 
 .video-thumbnail img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: all var(--transition-fast);
+}
+
+.video-thumbnail:hover img {
+  transform: scale(1.05);
 }
 
 .default-thumbnail {
@@ -248,67 +265,119 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 60px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--primary);
+  color: white;
+  transition: all var(--transition-fast);
+}
+
+.video-thumbnail:hover .default-thumbnail {
+  background: var(--primary-light);
+  transform: scale(1.05);
 }
 
 .duration {
   position: absolute;
-  bottom: 8px;
-  right: 8px;
+  bottom: var(--spacing-2);
+  right: var(--spacing-2);
   background: rgba(0,0,0,0.8);
   color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 12px;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  backdrop-filter: blur(4px);
 }
 
 .video-info {
-  padding: 15px;
+  padding: var(--spacing-4);
 }
 
 .video-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 8px;
+  margin-bottom: var(--spacing-3);
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
 }
 
 .video-title {
-  font-weight: bold;
+  font-weight: var(--font-weight-semibold);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
-  margin-right: 10px;
+  margin-right: var(--spacing-3);
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
 }
 
 .video-actions {
   display: flex;
-  gap: 5px;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
 }
 
 .video-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
-  color: #999;
-  margin-bottom: 10px;
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+  margin-bottom: var(--spacing-3);
+  font-weight: var(--font-weight-medium);
 }
 
 .video-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: var(--spacing-1);
 }
 
 .video-tags .el-tag {
   cursor: pointer;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  padding: 2px 8px;
+  transition: all var(--transition-fast);
+}
+
+.video-tags .el-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+:deep(.el-button) {
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-weight-medium);
+  padding: var(--spacing-2) var(--spacing-4);
+  transition: all var(--transition-fast);
+}
+
+:deep(.el-button:hover) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+:deep(.el-card) {
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  border: none;
+  background: transparent;
+}
+
+:deep(.el-empty) {
+  margin: var(--spacing-16) 0;
+}
+
+:deep(.el-empty__description) {
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
   .deleted-videos {
-    padding: 10px;
+    padding: var(--spacing-4);
   }
   
   .container {
@@ -316,14 +385,14 @@ export default {
   }
   
   .header {
-    padding: 15px;
+    padding: var(--spacing-4);
     flex-direction: column;
-    gap: 10px;
+    gap: var(--spacing-4);
     align-items: stretch;
   }
   
   .header h1 {
-    font-size: 24px;
+    font-size: var(--font-size-xl);
     text-align: center;
   }
   
@@ -332,43 +401,38 @@ export default {
     flex-wrap: wrap;
   }
   
-  .header-actions .el-button {
-    font-size: 12px;
-    padding: 6px 12px;
-  }
-  
   .video-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--spacing-4);
   }
   
   .video-title {
-    font-size: 14px;
+    font-size: var(--font-size-sm);
   }
   
   .video-actions {
     flex-direction: column;
-    gap: 5px;
+    gap: var(--spacing-2);
   }
   
   .video-actions .el-button {
-    font-size: 12px;
-    padding: 4px 8px;
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-1) var(--spacing-2);
   }
   
   .video-meta {
-    font-size: 10px;
+    font-size: var(--font-size-xs);
   }
   
   .video-tags .el-tag {
-    font-size: 10px;
+    font-size: var(--font-size-xs);
     padding: 2px 6px;
   }
 }
 
 @media (max-width: 480px) {
   .video-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
   
   .header-actions {
@@ -378,6 +442,20 @@ export default {
   
   .header-actions .el-button {
     width: 100%;
+  }
+  
+  .video-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .video-title {
+    margin-right: 0;
+  }
+  
+  .video-actions {
+    flex-direction: row;
+    justify-content: space-between;
   }
 }
 </style>

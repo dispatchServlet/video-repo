@@ -3,33 +3,64 @@
     <div class="container">
       <!-- 头部 -->
       <header class="header">
-        <h1>🎬 本地视频仓库</h1>
-        <div class="header-actions">
-          <el-button @click="$router.push('/library')">📚 视频库</el-button>
-          <el-button @click="$router.push('/deleted')">🗑️ 已删除</el-button>
-          <el-button @click="showRecentVideos">📺 历史播放</el-button>
-          <el-button @click="$router.push('/settings')">⚙️ 设置</el-button>
-          <el-button type="primary" @click="handleScan">🔄 扫描新增视频</el-button>
+        <div class="header-left">
+          <h1 class="app-title">🎬 本地视频仓库</h1>
+        </div>
+        <div class="header-right">
+          <div class="header-actions">
+            <el-button 
+              class="action-button"
+              @click="$router.push('/library')"
+            >
+              📚 视频库
+            </el-button>
+            <el-button 
+              class="action-button"
+              @click="$router.push('/deleted')"
+            >
+              🗑️ 已删除
+            </el-button>
+            <el-button 
+              class="action-button"
+              @click="showRecentVideos"
+            >
+              📺 历史播放
+            </el-button>
+            <el-button 
+              class="action-button"
+              @click="$router.push('/settings')"
+            >
+              ⚙️ 设置
+            </el-button>
+            <el-button 
+              type="primary" 
+              class="scan-button"
+              @click="handleScan"
+            >
+              🔄 扫描新增视频
+            </el-button>
+          </div>
         </div>
       </header>
 
-
-
       <!-- 搜索 -->
-      <div class="search-bar">
+      <div class="search-section">
         <el-input
           v-model="searchQuery"
           placeholder="搜索视频..."
           clearable
-          style="width: 100%"
+          class="search-input"
           @input="handleSearch"
         >
-          <template #prefix>🔍</template>
+          <template #prefix>
+            <i class="search-icon">🔍</i>
+          </template>
         </el-input>
       </div>
 
       <!-- 标签筛选 -->
-      <div class="tag-filter">
+      <div class="tag-section">
+        <h3 class="section-title">按标签筛选</h3>
         <div class="tag-scroll-container">
           <div 
             class="tag-item" 
@@ -62,68 +93,83 @@
       </div>
 
       <!-- 视频网格 -->
-      <div class="video-grid">
-        <el-card
-          v-for="video in filteredVideos"
-          :key="video.id"
-          class="video-card"
-          shadow="hover"
-          @click="playVideo(video.id)"
-        >
-          <div class="video-thumbnail">
-            <img 
-              v-if="video.thumbnail_path" 
-              :src="`/data/thumbnails/${getThumbnailName(video.thumbnail_path)}`" 
-              :alt="video.filename"
-              @error="showDefaultThumbnail"
-            />
-            <div v-else class="default-thumbnail">🎬</div>
-            <div class="duration">{{ formatDuration(video.duration) }}</div>
-            <div class="play-overlay">▶️</div>
-          </div>
-          <div class="video-info">
-            <div class="video-header">
-              <div class="video-title" :title="video.filename">{{ video.filename }}</div>
+      <div class="video-section">
+        <h3 class="section-title">
+          {{ selectedTag === '' ? '全部视频' : selectedTag === 'favorite' ? '收藏视频' : `标签: ${selectedTag}` }}
+          <span class="video-count">({{ filteredVideos.length }})</span>
+        </h3>
+        <div class="video-grid">
+          <el-card
+            v-for="video in filteredVideos"
+            :key="video.id"
+            class="video-card"
+            shadow="hover"
+            @click="playVideo(video.id)"
+          >
+            <div class="video-thumbnail">
+              <img 
+                v-if="video.thumbnail_path" 
+                :src="`/data/thumbnails/${getThumbnailName(video.thumbnail_path)}`" 
+                :alt="video.filename"
+                class="thumbnail-img"
+                @error="showDefaultThumbnail"
+              />
+              <div v-else class="default-thumbnail">🎬</div>
+              <div class="duration">{{ formatDuration(video.duration) }}</div>
+              <div class="play-overlay">▶️</div>
             </div>
-            <div class="video-meta">
-              <span class="folder">{{ video.folder_name }}</span>
-              <span class="size">{{ formatSize(video.size) }}</span>
-            </div>
-            <div class="video-actions">
-              <el-button
+            <div class="video-info">
+              <div class="video-header">
+                <div class="video-title" :title="video.filename">{{ video.filename }}</div>
+              </div>
+              <div class="video-meta">
+                <span class="folder">{{ video.folder_name }}</span>
+                <span class="size">{{ formatSize(video.size) }}</span>
+              </div>
+              <div class="video-actions">
+                <el-button
                   size="small"
                   :type="video.is_favorite ? 'primary' : 'default'"
+                  class="action-btn favorite-btn"
                   @click.stop="toggleFavorite(video)"
                 >
                   {{ video.is_favorite ? '已收藏' : '收藏' }}
                 </el-button>
-              <el-button
-                size="small"
-                icon="Delete"
-                type="danger"
-                @click.stop="deleteVideo(video)"
-              >
-                删除
-              </el-button>
+                <el-button
+                  size="small"
+                  type="danger"
+                  class="action-btn delete-btn"
+                  @click.stop="deleteVideo(video)"
+                >
+                  删除
+                </el-button>
+              </div>
+              <div class="video-tags">
+                <el-tag
+                  v-for="tag in parseTags(video.tags, video.tag_colors)"
+                  :key="tag.name"
+                  size="small"
+                  :style="{ backgroundColor: tag.color, borderColor: tag.color, color: 'white' }"
+                  class="video-tag"
+                  @click.stop="selectTag(tag.name)"
+                >
+                  {{ tag.name }}
+                </el-tag>
+              </div>
             </div>
-            <div class="video-tags">
-              <el-tag
-                v-for="tag in parseTags(video.tags, video.tag_colors)"
-                :key="tag.name"
-                size="small"
-                :style="{ backgroundColor: tag.color, borderColor: tag.color, color: 'white' }"
-                @click.stop="selectTag(tag.name)"
-              >
-                {{ tag.name }}
-              </el-tag>
-            </div>
-          </div>
-        </el-card>
+          </el-card>
+        </div>
       </div>
 
       <!-- 空状态 -->
-      <el-empty v-if="filteredVideos.length === 0" description="暂无视频，点击扫描新增视频开始">
-        <el-button type="primary" @click="handleScan">扫描视频库</el-button>
+      <el-empty 
+        v-if="filteredVideos.length === 0" 
+        description="暂无视频，点击扫描新增视频开始"
+        class="empty-state"
+      >
+        <el-button type="primary" @click="handleScan" class="scan-button">
+          扫描视频库
+        </el-button>
       </el-empty>
     </div>
   </div>
@@ -305,7 +351,7 @@ export default {
       if (!tagsStr) return []
       const names = tagsStr.split(',')
       const colors = colorsStr ? colorsStr.split(',') : []
-      return names.map((name, i) => ({ name, color: colors[i] || '#667eea' }))
+      return names.map((name, i) => ({ name, color: colors[i] || '#6366f1' }))
     }
 
     const getThumbnailName = (path) => {
@@ -338,23 +384,23 @@ export default {
       if (recentVideos.value.length > 0) {
         ElMessageBox.alert(
           `<div class="recent-videos-dialog">
-            <h3 style="margin-bottom: 15px; color: #667eea;">📺 最近播放</h3>
+            <h3 style="margin-bottom: var(--spacing-4); color: var(--primary); font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold);">📺 最近播放</h3>
             <div class="recent-videos-grid">
               ${recentVideos.value.map(video => {
                 const thumbnailName = video.thumbnail_path ? video.thumbnail_path.split('/').pop() : ''
                 const duration = video.duration ? `${Math.floor(video.duration / 60)}:${(video.duration % 60).toString().padStart(2, '0')}` : '0:00'
                 return `
-                <div class="recent-video-item" style="cursor: pointer; padding: 10px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px;" onclick="window.location.href='/player/${video.id}'">
-                  <div style="width: 80px; height: 45px; border-radius: 4px; overflow: hidden; background: #000;">
+                <div class="recent-video-item" style="cursor: pointer; padding: var(--spacing-3); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: var(--spacing-3); transition: background-color var(--transition-fast);" onclick="window.location.href='/player/${video.id}'">
+                  <div style="width: 80px; height: 45px; border-radius: var(--radius-md); overflow: hidden; background: #000;">
                     ${video.thumbnail_path ? `
                       <img src="/data/thumbnails/${thumbnailName}" style="width: 100%; height: 100%; object-fit: cover;" />
                     ` : `
-                      <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 20px; background: linear-gradient(135deg, #667eea, #764ba2); color: white;">🎬</div>
+                      <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 20px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white;">🎬</div>
                     `}
                   </div>
                   <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${video.filename}</div>
-                    <div style="font-size: 12px; color: #999; display: flex; justify-content: space-between; margin-top: 5px;">
+                    <div style="font-weight: var(--font-weight-semibold); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-size-sm);">${video.filename}</div>
+                    <div style="font-size: var(--font-size-xs); color: var(--text-tertiary); display: flex; justify-content: space-between; margin-top: var(--spacing-1);">
                       <span>${video.folder_name}</span>
                       <span>${duration}</span>
                     </div>
@@ -413,8 +459,9 @@ export default {
 
 <style scoped>
 .home {
-  padding: 20px;
+  padding: var(--spacing-6);
   min-height: 100vh;
+  width: 100%;
 }
 
 .container {
@@ -422,43 +469,110 @@ export default {
   margin: 0 auto;
 }
 
+/* 头部 */
 .header {
-  background: white;
-  padding: 20px 30px;
-  border-radius: 15px;
-  margin-bottom: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  background: var(--bg-secondary);
+  padding: var(--spacing-6);
+  border-radius: var(--radius-2xl);
+  margin-bottom: var(--spacing-8);
+  box-shadow: var(--shadow-lg);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
 }
 
-.header h1 {
-  color: #667eea;
-  font-size: 28px;
+.header-left {
+  flex: 1;
+  min-width: 200px;
+}
+
+.app-title {
+  color: var(--primary);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.header-right {
+  flex: 1;
+  min-width: 300px;
 }
 
 .header-actions {
   display: flex;
-  gap: 10px;
+  gap: var(--spacing-3);
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
-.search-bar {
-  margin-bottom: 20px;
+.action-button {
+  border-radius: var(--radius-lg) !important;
+  font-weight: var(--font-weight-medium) !important;
+  transition: all var(--transition-fast) !important;
 }
 
-.tag-filter {
-  margin-bottom: 20px;
-  overflow: hidden;
+.scan-button {
+  border-radius: var(--radius-lg) !important;
+  font-weight: var(--font-weight-medium) !important;
+  padding: var(--spacing-3) var(--spacing-6) !important;
+  transition: all var(--transition-fast) !important;
+}
+
+/* 搜索区域 */
+.search-section {
+  margin-bottom: var(--spacing-8);
+}
+
+.search-input {
+  width: 100%;
+  border-radius: var(--radius-xl) !important;
+  box-shadow: var(--shadow-base);
+  transition: all var(--transition-fast) !important;
+}
+
+.search-input:hover {
+  box-shadow: var(--shadow-md) !important;
+}
+
+.search-icon {
+  font-size: var(--font-size-lg);
+  color: var(--text-tertiary);
+}
+
+/* 标签区域 */
+.tag-section {
+  margin-bottom: var(--spacing-8);
+}
+
+.section-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-4);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.video-count {
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+  font-weight: var(--font-weight-normal);
 }
 
 .tag-scroll-container {
   display: flex;
-  gap: 10px;
-  padding: 10px 0;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) 0;
   overflow-x: auto;
   scrollbar-width: thin;
-  scrollbar-color: #667eea #f0f0f0;
+  scrollbar-color: var(--primary) var(--bg-tertiary);
+  padding-bottom: var(--spacing-4);
 }
 
 .tag-scroll-container::-webkit-scrollbar {
@@ -466,97 +580,107 @@ export default {
 }
 
 .tag-scroll-container::-webkit-scrollbar-track {
-  background: #f0f0f0;
-  border-radius: 3px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
 }
 
 .tag-scroll-container::-webkit-scrollbar-thumb {
-  background: #667eea;
-  border-radius: 3px;
+  background: var(--primary);
+  border-radius: var(--radius-full);
+  transition: background var(--transition-fast);
+}
+
+.tag-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
 }
 
 .tag-item {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  background: #f0f0f0;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-5);
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary);
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.3s ease;
-  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+  border: 1px solid var(--border);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
 }
 
 .tag-item:hover {
-  background: #e0e0e0;
+  background: var(--bg-secondary);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .tag-item.active {
-  background: var(--tag-color, #667eea);
+  background: var(--tag-color, var(--primary));
   color: white;
-  border-color: var(--tag-color, #667eea);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-color: var(--tag-color, var(--primary));
+  box-shadow: var(--shadow-md);
   transform: scale(1.05);
-  transition: all 0.3s ease;
 }
 
 .tag-count {
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   opacity: 0.8;
   background: rgba(255, 255, 255, 0.2);
-  padding: 2px 6px;
-  border-radius: 10px;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-full);
   min-width: 20px;
   text-align: center;
+  font-weight: var(--font-weight-semibold);
 }
 
 .tag-item:not(.active) .tag-count {
-  background: rgba(0, 0, 0, 0.1);
-  color: #666;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+/* 视频区域 */
+.video-section {
+  margin-bottom: var(--spacing-8);
 }
 
 .video-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-6);
 }
 
 .video-card {
   cursor: pointer;
-  transition: transform 0.3s;
+  transition: all var(--transition-normal);
+  border-radius: var(--radius-xl) !important;
+  overflow: hidden;
+  box-shadow: var(--shadow-base);
 }
 
 .video-card:hover {
   transform: translateY(-5px);
-}
-
-.video-card:hover .video-thumbnail::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
-  border-radius: 8px;
-  z-index: 1;
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-lg);
 }
 
 .video-thumbnail {
   position: relative;
   aspect-ratio: 16/9;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   background: #000;
 }
 
-.video-thumbnail img {
+.thumbnail-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.video-card:hover .thumbnail-img {
+  transform: scale(1.05);
 }
 
 .default-thumbnail {
@@ -566,18 +690,21 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 60px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
 }
 
 .duration {
   position: absolute;
-  bottom: 8px;
-  right: 8px;
-  background: rgba(0,0,0,0.8);
+  bottom: var(--spacing-2);
+  right: var(--spacing-2);
+  background: rgba(0, 0, 0, 0.8);
   color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 12px;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  backdrop-filter: blur(4px);
 }
 
 .play-overlay {
@@ -586,13 +713,14 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40px;
+  font-size: 48px;
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: all var(--transition-normal);
+  backdrop-filter: blur(2px);
 }
 
 .video-card:hover .play-overlay {
@@ -600,54 +728,96 @@ export default {
 }
 
 .video-info {
-  padding: 15px;
+  padding: var(--spacing-4);
 }
 
 .video-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
+  margin-bottom: var(--spacing-3);
 }
 
 .video-title {
-  font-weight: bold;
+  font-weight: var(--font-weight-semibold);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  flex: 1;
-  margin-right: 10px;
-}
-
-.video-actions {
-  display: flex;
-  gap: 8px;
-  margin: 10px 0;
-  justify-content: flex-start;
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
 }
 
 .video-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
-  color: #999;
-  margin-bottom: 10px;
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  margin-bottom: var(--spacing-3);
+}
+
+.video-actions {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+  justify-content: flex-start;
+}
+
+.action-btn {
+  flex: 1;
+  font-size: var(--font-size-xs) !important;
+  padding: var(--spacing-2) !important;
+  border-radius: var(--radius-md) !important;
+  font-weight: var(--font-weight-medium) !important;
+}
+
+.favorite-btn {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+.favorite-btn.is-primary {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: white !important;
+}
+
+.delete-btn {
+  background-color: var(--danger) !important;
+  border-color: var(--danger) !important;
+  color: white !important;
 }
 
 .video-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: var(--spacing-2);
 }
 
-.video-tags .el-tag {
+.video-tag {
+  font-size: var(--font-size-xs) !important;
+  padding: var(--spacing-1) var(--spacing-2) !important;
   cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.video-tag:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 空状态 */
+.empty-state {
+  margin: var(--spacing-16) 0;
 }
 
 /* 响应式设计 */
+@media (max-width: 1024px) {
+  .video-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--spacing-4);
+  }
+}
+
 @media (max-width: 768px) {
   .home {
-    padding: 10px;
+    padding: var(--spacing-4);
   }
   
   .container {
@@ -655,15 +825,19 @@ export default {
   }
   
   .header {
-    padding: 15px;
+    padding: var(--spacing-4);
     flex-direction: column;
-    gap: 10px;
+    gap: var(--spacing-3);
     align-items: stretch;
   }
   
-  .header h1 {
-    font-size: 24px;
+  .header-left {
     text-align: center;
+  }
+  
+  .app-title {
+    font-size: var(--font-size-xl);
+    justify-content: center;
   }
   
   .header-actions {
@@ -671,43 +845,52 @@ export default {
     flex-wrap: wrap;
   }
   
-  .header-actions .el-button {
-    font-size: 12px;
-    padding: 6px 12px;
+  .action-button {
+    font-size: var(--font-size-sm) !important;
+    padding: var(--spacing-2) var(--spacing-3) !important;
+  }
+  
+  .scan-button {
+    font-size: var(--font-size-sm) !important;
+    padding: var(--spacing-2) var(--spacing-4) !important;
   }
   
   .video-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--spacing-3);
   }
   
   .video-title {
-    font-size: 14px;
+    font-size: var(--font-size-sm);
   }
   
   .video-actions {
     flex-direction: column;
-    gap: 5px;
+    gap: var(--spacing-2);
   }
   
-  .video-actions .el-button {
-    font-size: 12px;
-    padding: 4px 8px;
+  .action-btn {
+    font-size: var(--font-size-xs) !important;
+    padding: var(--spacing-1) !important;
   }
   
   .video-meta {
-    font-size: 10px;
+    font-size: var(--font-size-xs);
   }
   
-  .video-tags .el-tag {
-    font-size: 10px;
-    padding: 2px 6px;
+  .video-tag {
+    font-size: var(--font-size-xs) !important;
+    padding: var(--spacing-1) !important;
+  }
+  
+  .section-title {
+    font-size: var(--font-size-base);
   }
 }
 
 @media (max-width: 480px) {
   .video-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
   
   .header-actions {
@@ -715,8 +898,19 @@ export default {
     align-items: stretch;
   }
   
-  .header-actions .el-button {
+  .action-button,
+  .scan-button {
     width: 100%;
+  }
+  
+  .tag-item {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-xs);
+  }
+  
+  .tag-count {
+    font-size: 10px;
+    padding: 2px 4px;
   }
 }
 </style>
