@@ -19,3 +19,15 @@ coverage/
 .DS_Store
 .DS_Store
 video-repo-windows.zip
+
+# 忽略 node_modules（所有目录下的）
+node_modules/
+
+# 忽略 client 下的 dist 目录
+client/dist/
+
+# 可选：忽略其他构建/缓存文件
+client/.env
+client/.cache/
+client/build/
+client/*.log
