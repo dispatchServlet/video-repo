@@ -14,14 +14,19 @@ class VideoScanner {
   getScanPaths() {
     const configPath = path.join(__dirname, '../data/scan-paths.json');
     if (fs.existsSync(configPath)) {
-      return JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      try {
+        const paths = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+        // 确保返回的是数组且不为空
+        if (Array.isArray(paths) && paths.length > 0) {
+          return paths;
+        }
+      } catch (error) {
+        console.error('读取扫描路径配置失败:', error);
+      }
     }
-    // 默认扫描路径
-    return [
-      path.join(require('os').homedir(), 'Movies'),
-      path.join(require('os').homedir(), 'Downloads'),
-      path.join(require('os').homedir(), 'Videos')
-    ];
+    
+    // 如果没有配置或配置无效，返回空数组
+    return [];
   }
 
   saveScanPaths(paths) {
@@ -233,6 +238,34 @@ class VideoScanner {
         .on('end', () => resolve(thumbnailPath))
         .on('error', () => resolve(null));
     });
+  }
+
+  // 清理不在扫描路径中的视频
+  cleanupVideosNotInPaths(scanPaths) {
+    try {
+      // 获取所有视频
+      const videos = db.query('SELECT id, path FROM videos WHERE is_deleted = 0');
+      let cleanedCount = 0;
+
+      for (const video of videos) {
+        // 检查视频路径是否在任何扫描路径中
+        const isInScanPath = scanPaths.some(scanPath => 
+          video.path.startsWith(scanPath)
+        );
+
+        if (!isInScanPath) {
+          // 删除不在扫描路径中的视频
+          db.run('DELETE FROM videos WHERE id = ?', [video.id]);
+          cleanedCount++;
+        }
+      }
+
+      console.log(`清理了 ${cleanedCount} 个不在扫描路径中的视频`);
+      return cleanedCount;
+    } catch (error) {
+      console.error('清理视频失败:', error);
+      return 0;
+    }
   }
 }
 

@@ -61,6 +61,11 @@ export default {
     return api.post('/scan-paths', { paths })
   },
 
+  // 清理不在扫描路径中的视频
+  cleanupVideos() {
+    return api.post('/scan-paths/cleanup')
+  },
+
   // 删除视频（标记为已删除）
   deleteVideo(id) {
     return api.delete(`/videos/${id}/soft`)
@@ -97,8 +102,8 @@ export default {
   },
 
   // 初始化项目
-  initProject() {
-    return api.post('/init')
+  initProject(data = {}) {
+    return api.post('/init', data)
   },
 
   // 获取统计数据

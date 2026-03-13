@@ -372,6 +372,17 @@ app.post('/api/scan-paths', (req, res) => {
   }
 });
 
+// 清理不在扫描路径中的视频
+app.post('/api/scan-paths/cleanup', (req, res) => {
+  try {
+    const paths = scanner.getScanPaths();
+    const cleanedCount = scanner.cleanupVideosNotInPaths(paths);
+    res.json({ success: true, cleaned: cleanedCount });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 删除视频记录
 app.delete('/api/videos/:id', (req, res) => {
   try {
@@ -454,6 +465,13 @@ app.post('/api/init', async (req, res) => {
       });
     }
 
+    // 处理磁盘选择
+    const { disks } = req.body;
+    if (disks && Array.isArray(disks) && disks.length > 0) {
+      // 保存用户选择的磁盘路径
+      scanner.saveScanPaths(disks);
+    }
+
     // 不自动扫描视频，由用户手动触发
     
     res.json({ 
@@ -483,13 +501,18 @@ async function startup() {
     fs.mkdirSync(dataDir, { recursive: true });
   }
 
-  // 自动扫描新增视频
-  console.log('📁 扫描视频库...');
-  try {
-    const result = await scanner.scanAll();
-    console.log(`✅ 扫描完成：新增 ${result.added} 个视频，跳过 ${result.skipped} 个`);
-  } catch (err) {
-    console.error('扫描失败:', err.message);
+  // 自动扫描新增视频（仅当有配置的扫描路径时）
+  const scanPaths = scanner.getScanPaths();
+  if (scanPaths.length > 0) {
+    console.log('📁 扫描视频库...');
+    try {
+      const result = await scanner.scanAll();
+      console.log(`✅ 扫描完成：新增 ${result.added} 个视频，跳过 ${result.skipped} 个`);
+    } catch (err) {
+      console.error('扫描失败:', err.message);
+    }
+  } else {
+    console.log('⚠️  未配置扫描路径，请在设置页面添加视频目录');
   }
 
   // 启动服务器

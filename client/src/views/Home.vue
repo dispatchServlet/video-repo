@@ -43,19 +43,35 @@
         </div>
       </header>
 
-      <!-- 搜索 -->
+      <!-- 搜索和排序 -->
       <div class="search-section">
-        <el-input
-          v-model="searchQuery"
-          placeholder="搜索视频..."
-          clearable
-          class="search-input"
-          @input="handleSearch"
-        >
-          <template #prefix>
-            <i class="search-icon">🔍</i>
-          </template>
-        </el-input>
+        <div class="search-sort-container">
+          <el-input
+            v-model="searchQuery"
+            placeholder="搜索视频..."
+            clearable
+            class="search-input"
+            @input="handleSearch"
+          >
+            <template #prefix>
+              <i class="search-icon">🔍</i>
+            </template>
+          </el-input>
+          
+          <div class="sort-options">
+            <span>排序：</span>
+            <el-select v-model="sortBy" size="small" @change="handleSearch">
+              <el-option label="默认" value="default"></el-option>
+              <el-option label="名称" value="name"></el-option>
+              <el-option label="大小" value="size"></el-option>
+              <el-option label="添加日期" value="date"></el-option>
+            </el-select>
+            <el-select v-model="sortOrder" size="small" @change="handleSearch">
+              <el-option label="升序" value="asc"></el-option>
+              <el-option label="降序" value="desc"></el-option>
+            </el-select>
+          </div>
+        </div>
       </div>
 
       <!-- 标签筛选 -->
@@ -192,6 +208,8 @@ export default {
     const searchingTags = ref(false)
     const allTagsWithCount = ref([])
     const recentVideos = ref([])
+    const sortBy = ref('default')
+    const sortOrder = ref('desc')
 
     const favoriteCount = computed(() => {
       return videos.value.filter(v => v.is_favorite).length
@@ -217,6 +235,28 @@ export default {
           )
         }
       }
+      
+      // 排序
+      result.sort((a, b) => {
+        let comparison = 0
+        
+        switch (sortBy.value) {
+          case 'name':
+            comparison = a.filename.localeCompare(b.filename)
+            break
+          case 'size':
+            comparison = a.size - b.size
+            break
+          case 'date':
+            comparison = new Date(a.created_at) - new Date(b.created_at)
+            break
+          default:
+            // 默认按创建时间降序
+            comparison = new Date(b.created_at) - new Date(a.created_at)
+        }
+        
+        return sortOrder.value === 'asc' ? comparison : -comparison
+      })
       
       return result
     })
@@ -262,6 +302,13 @@ export default {
 
     const handleScan = async () => {
       try {
+        // 检查是否已添加视频目录
+        const paths = await api.getScanPaths()
+        if (!paths.data || paths.data.length === 0) {
+          ElMessage.warning('请先在设置页面添加视频目录后再执行扫描')
+          return
+        }
+        
         const res = await api.scanLibrary()
         ElMessage.success(`扫描完成！新增 ${res.data.added} 个视频，跳过 ${res.data.skipped} 个`)
         loadVideos()
@@ -435,6 +482,8 @@ export default {
       filteredVideos,
       searchQuery,
       selectedTag,
+      sortBy,
+      sortOrder,
       filteredTags,
       allTagsWithCount,
       favoriteCount,
@@ -528,8 +577,16 @@ export default {
   margin-bottom: var(--spacing-8);
 }
 
+.search-sort-container {
+  display: flex;
+  gap: var(--spacing-4);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .search-input {
-  width: 100%;
+  flex: 1;
+  min-width: 300px;
   border-radius: var(--radius-xl) !important;
   box-shadow: var(--shadow-base);
   transition: all var(--transition-fast) !important;
@@ -542,6 +599,23 @@ export default {
 .search-icon {
   font-size: var(--font-size-lg);
   color: var(--text-tertiary);
+}
+
+.sort-options {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.sort-options span {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.sort-options :deep(.el-select) {
+  min-width: 100px;
 }
 
 /* 标签区域 */

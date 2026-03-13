@@ -22,6 +22,10 @@
               <el-icon><Collection /></el-icon>
               <span>标签管理</span>
             </el-menu-item>
+            <el-menu-item index="directories">
+              <el-icon><Folder /></el-icon>
+              <span>视频目录</span>
+            </el-menu-item>
             <el-menu-item index="init">
               <el-icon><Refresh /></el-icon>
               <span>初始化项目</span>
@@ -173,6 +177,42 @@
           </el-dialog>
         </div>
 
+        <!-- 视频目录管理 -->
+        <div v-if="activeTab === 'directories'" class="setting-section">
+          <h2>📁 视频目录</h2>
+          <p style="margin-bottom: var(--spacing-6); color: #666;">
+            添加要扫描的视频目录，系统将只扫描这些目录中的视频文件。
+          </p>
+          
+          <!-- 目录列表 -->
+          <div class="directory-list">
+            <h3 style="margin-bottom: var(--spacing-3); color: var(--text-primary);">已添加的目录</h3>
+            <el-empty v-if="videoDirectories.length === 0" description="暂无目录，请添加"></el-empty>
+            <el-list v-else>
+              <el-list-item v-for="(dir, index) in videoDirectories" :key="index">
+                <div class="directory-item">
+                  <el-icon class="directory-icon"><Folder /></el-icon>
+                  <span class="directory-path">{{ dir }}</span>
+                  <el-button size="small" type="danger" @click="removeDirectory(index)">
+                    删除
+                  </el-button>
+                </div>
+              </el-list-item>
+            </el-list>
+          </div>
+          
+          <!-- 按钮区域 -->
+          <div class="button-group" style="margin-top: var(--spacing-6); text-align: center;">
+            <el-button type="primary" @click="addDirectory">
+              ➕ 添加目录
+            </el-button>
+            
+            <el-button v-if="videoDirectories.length > 0" type="success" @click="saveDirectories" style="margin-left: 10px;">
+              💾 保存设置
+            </el-button>
+          </div>
+        </div>
+
         <!-- 初始化项目 -->
         <div v-if="activeTab === 'init'" class="setting-section">
           <h2>🔄 初始化项目</h2>
@@ -194,6 +234,7 @@
                 <li>清空所有关键帧</li>
                 <li>删除所有缓存文件</li>
               </ul>
+              
               <el-button type="danger" size="large" @click="initProject">
                 🗑️ 执行初始化
               </el-button>
@@ -209,7 +250,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Sunny, Collection, Refresh } from '@element-plus/icons-vue'
+import { Sunny, Collection, Refresh, Folder } from '@element-plus/icons-vue'
 import api from '../api'
 
 export default {
@@ -235,6 +276,27 @@ export default {
       { name: 'red', label: '玫瑰红', gradient: 'linear-gradient(135deg, #f5576c 0%, #f093fb 100%)' },
       { name: 'dark', label: '暗夜黑', gradient: 'linear-gradient(135deg, #434343 0%, #000000 100%)' }
     ]
+    
+    // 磁盘选择相关
+    const isWindows = ref(false)
+    const availableDisks = ref([])
+    const selectedDisks = ref([])
+    
+    // 视频目录相关
+    const videoDirectories = ref([])
+    
+    // 检测操作系统和获取可用磁盘
+    const checkSystemAndDisks = () => {
+      // 检测是否为Windows系统
+      isWindows.value = navigator.platform.includes('Win')
+      
+      if (isWindows.value) {
+        // 模拟获取Windows磁盘（实际应该从服务器获取）
+        // 这里使用模拟数据，实际项目中应该调用API获取
+        availableDisks.value = ['C:/', 'D:/', 'E:/', 'F:/']
+        selectedDisks.value = [...availableDisks.value] // 默认全选
+      }
+    }
     
     // 统计使用中的标签数量
     const videosWithTagCount = computed(() => {
@@ -415,6 +477,12 @@ export default {
 
     const initProject = async () => {
       try {
+        // 检查是否已添加视频目录
+        if (videoDirectories.value.length === 0) {
+          ElMessage.warning('请先添加视频目录后再执行初始化')
+          return
+        }
+        
         await ElMessageBox.confirm(
           '确定要初始化项目吗？\n这将清空所有视频、标签、关键帧数据和缓存文件。\n操作不可恢复！',
           '警告',
@@ -427,7 +495,9 @@ export default {
         )
         
         loading.value = true
-        await api.initProject()
+        // 发送视频目录信息到服务器
+        const initData = { disks: videoDirectories.value }
+        await api.initProject(initData)
         ElMessage.success('项目初始化完成')
         // 重新加载标签数据
         await loadTags()
@@ -442,8 +512,65 @@ export default {
       }
     }
 
+    // 加载视频目录设置
+    const loadDirectories = async () => {
+      try {
+        const response = await api.getScanPaths()
+        videoDirectories.value = response.data
+      } catch (err) {
+        console.error('加载目录设置失败:', err)
+      }
+    }
+
+    // 添加目录
+    const addDirectory = () => {
+      // 这里需要实现目录选择功能
+      // 由于浏览器安全限制，无法直接打开文件夹选择对话框
+      // 我们使用输入框让用户手动输入目录路径
+      ElMessageBox.prompt(
+        '请输入视频目录路径:',
+        '添加目录',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          inputPlaceholder: '例如: /Users/username/Videos 或 D:/Videos'
+        }
+      ).then(({ value }) => {
+        if (value && !videoDirectories.value.includes(value)) {
+          videoDirectories.value.push(value)
+          ElMessage.success('目录已添加')
+        } else if (videoDirectories.value.includes(value)) {
+          ElMessage.warning('目录已存在')
+        }
+      }).catch(() => {
+        // 取消操作
+      })
+    }
+
+    // 删除目录
+    const removeDirectory = (index) => {
+      videoDirectories.value.splice(index, 1)
+      ElMessage.success('目录已删除')
+      // 自动保存更改
+      saveDirectories()
+    }
+
+    // 保存目录设置
+    const saveDirectories = async () => {
+      try {
+        await api.updateScanPaths(videoDirectories.value)
+        // 清理不在扫描路径中的视频
+        await api.cleanupVideos()
+        ElMessage.success('目录设置已保存，已清理不在扫描路径中的视频')
+      } catch (err) {
+        ElMessage.error('保存失败：' + err.message)
+      }
+    }
+
     onMounted(() => {
       loadTags()
+      checkSystemAndDisks()
+      loadDirectories()
     })
 
     return {
@@ -472,7 +599,16 @@ export default {
       themeOptions,
       changeTheme,
       activeTab,
-      handleMenuSelect
+      handleMenuSelect,
+      // 磁盘选择相关
+      isWindows,
+      availableDisks,
+      selectedDisks,
+      // 视频目录相关
+      videoDirectories,
+      addDirectory,
+      removeDirectory,
+      saveDirectories
     }
   }
 }
@@ -515,6 +651,7 @@ export default {
   gap: var(--spacing-6);
   margin-bottom: var(--spacing-6);
   flex-wrap: wrap;
+  align-items: flex-start;
 }
 
 .settings-menu {
@@ -524,6 +661,7 @@ export default {
   box-shadow: var(--shadow-lg);
   overflow: hidden;
   transition: all var(--transition-normal);
+  min-height: 650px;
 }
 
 .settings-content {
@@ -533,7 +671,7 @@ export default {
   border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-lg);
   padding: var(--spacing-6);
-  min-height: 600px;
+  min-height: 650px;
   transition: all var(--transition-normal);
 }
 
@@ -663,6 +801,67 @@ export default {
   border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-md);
   transition: all var(--transition-normal);
+}
+
+
+
+.directory-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-2);
+  transition: all var(--transition-fast);
+}
+
+.directory-item:hover {
+  background: var(--bg-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.directory-icon {
+  font-size: var(--font-size-lg);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.directory-path {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  word-break: break-all;
+}
+
+.directory-list {
+  max-height: 380px;
+  overflow-y: auto;
+  padding: var(--spacing-4);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  min-height: 200px;
+  margin-bottom: var(--spacing-6);
+  text-align: left;
+}
+
+.directory-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.directory-list::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+}
+
+.directory-list::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: var(--radius-full);
+  transition: background var(--transition-fast);
+}
+
+.directory-list::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
 }
 
 .init-content {
